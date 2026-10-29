@@ -48,6 +48,31 @@ export function fingerState(p) {
   return [thumb, ...rest];
 }
 
+/**
+ * Barmoq qanchalik to'g'ri: uchi bilan asosi orasidagi masofa / barmoq uzunligi.
+ * 1.0 - butunlay tik, ~0.8 - yarim bukilgan, ~0.2 - musht.
+ * Qo'l kattaligi, burilishi va kameradan uzoqligiga bog'liq emas.
+ */
+function straightness(p, mcp) {
+  const [a, b, c, d] = [p[mcp], p[mcp + 1], p[mcp + 2], p[mcp + 3]];
+  const length = dist(a, b) + dist(b, c) + dist(c, d);
+  return dist(a, d) / Math.max(length, 1e-6);
+}
+
+/**
+ * Chizish rejimi uchun qalam holati: "draw" (yozish), "hover" (qalam ko'tarilgan) yoki "none".
+ * Ko'rsatkich uchun yumshoq chegara (biroz egilgan bo'lsa ham yozadi),
+ * o'rta barmoq uchun qattiq chegara: u faqat aniq tik turganda qalam ko'tariladi.
+ * Shunda yarim bukilgan o'rta barmoq chizishga xalaqit bermaydi.
+ */
+export function penState(p) {
+  const indexUp = straightness(p, 5) > 0.6;
+  const middleUp = straightness(p, 9) > 0.88;
+  if (indexUp && middleUp) return "hover";
+  if (indexUp) return "draw";
+  return "none";
+}
+
 /** Bir qo'l: GESTURE_MAP bo'yicha. Ikki qo'l: barmoqlar yig'indisi 6-9. */
 export function readGesture(hands) {
   if (hands.length === 1) {

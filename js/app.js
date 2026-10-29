@@ -1,6 +1,8 @@
-import { HAND_CONNECTIONS, GestureInput, fingerState, readGesture, toPixels } from "./gestures.js";
-import { safeEval, CalcError } from "./calculator.js";
-import { solveImage, DEFAULT_MODEL } from "./ai.js";
+// ?v=... - yangilanishdan keyin brauzer eski fayllarni keshdan olmasligi uchun.
+// Fayllarni o'zgartirganda bu raqamni hamma joyda (index.html ham) oshiring.
+import { HAND_CONNECTIONS, GestureInput, penState, readGesture, toPixels } from "./gestures.js?v=3";
+import { safeEval, CalcError } from "./calculator.js?v=3";
+import { solveImage, DEFAULT_MODEL } from "./ai.js?v=3";
 
 const DEFAULT_HOLD_MS = 1000; // ishorani qancha ushlab turish kerak (sozlanadi)
 const PEN_WIDTH = 15;
@@ -23,6 +25,7 @@ const state = {
   strokes: [],         // chiziqlar: [{x, y}] massivlari, koordinatalar 0..1
   currentStroke: null,
   marker: null,        // barmoq uchidagi doira
+  pen: "nohand",       // chizish holati: draw | hover | none | nohand
   gesture: new GestureInput({ holdMs: Number(localStorage.getItem("shc_hold_ms")) || DEFAULT_HOLD_MS }),
   aiBusy: false,
   showingMessage: false,
@@ -152,7 +155,7 @@ async function start() {
     await fillCameraList();
     status.textContent = "Qo'l modeli yuklanmoqda (bir necha soniya)...";
     // MediaPipe CDN'dan yuklanadi; ishlamasa ham kalkulyator ishlayveradi
-    const { createHandLandmarker } = await import("./tracker.js");
+    const { createHandLandmarker } = await import("./tracker.js?v=3");
     state.landmarker = await createHandLandmarker();
     $("startOverlay").classList.add("hidden");
     requestAnimationFrame(loop);
@@ -168,16 +171,17 @@ async function start() {
 function handleDrawing(hands, w, h) {
   state.marker = null;
   if (!hands.length) {
+    state.pen = "nohand";
     state.currentStroke = null; // qo'l yo'qolsa, chiziq uziladi
     return;
   }
   const p = hands[0];
-  const [, indexUp, middleUp] = fingerState(p);
+  state.pen = penState(p);
 
-  if (indexUp && middleUp) {
+  if (state.pen === "hover") {
     state.currentStroke = null;
     state.marker = { x: (p[8].x + p[12].x) / 2, y: (p[8].y + p[12].y) / 2, color: "#00ff00" };
-  } else if (indexUp) {
+  } else if (state.pen === "draw") {
     if (!state.currentStroke) {
       state.currentStroke = [];
       state.strokes.push(state.currentStroke);
@@ -254,6 +258,23 @@ function drawGestureOverlay(w, h) {
   ctx.fillText("👍 +   🤙 ÷   🤘 ×   jimjiloq −   L =   2 qo'l: 6–9", 10, h - 16);
 }
 
+const PEN_STATUS = {
+  draw: ["✍️ Yozilmoqda", "#ff5050"],
+  hover: ["✌️ Qalam ko'tarilgan", "#00ff00"],
+  none: ["☝️ Yozish uchun ko'rsatkich barmoqni ko'taring", "#ffaa00"],
+  nohand: ["Qo'l ko'rinmayapti", "#aaaaaa"],
+};
+
+function drawPenStatus() {
+  const [text, color] = PEN_STATUS[state.pen];
+  ctx.font = "bold 22px system-ui, sans-serif";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "rgba(0,0,0,0.7)";
+  ctx.strokeText(text, 20, 40);
+  ctx.fillStyle = color;
+  ctx.fillText(text, 20, 40);
+}
+
 // ================= Asosiy sikl =================
 
 function drawHands(hands) {
@@ -305,11 +326,14 @@ function loop() {
     if (state.mode === "DRAW") drawStrokes(ctx, w, h, "#ffffff");
     drawHands(state.hands);
 
-    if (state.mode === "DRAW" && state.marker) {
-      ctx.fillStyle = state.marker.color;
-      ctx.beginPath();
-      ctx.arc(state.marker.x, state.marker.y, 15, 0, Math.PI * 2);
-      ctx.fill();
+    if (state.mode === "DRAW") {
+      if (state.marker) {
+        ctx.fillStyle = state.marker.color;
+        ctx.beginPath();
+        ctx.arc(state.marker.x, state.marker.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      drawPenStatus();
     }
     if (state.mode === "GESTURE") drawGestureOverlay(w, h);
   }
