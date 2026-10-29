@@ -1,0 +1,181 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #1a1a1a;
+  color: #e8e8e8;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px 0;
+}
+
+h1 { margin: 0; font-size: 1.5rem; }
+h3 { margin: 0 0 6px; font-size: 1rem; }
+
+a { color: #5dade2; }
+
+main {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+.card {
+  background: #2b2b2b;
+  border-radius: 15px;
+  padding: 14px;
+}
+
+/* ---------- Video ---------- */
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #111;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#video { display: none; }
+
+#view {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  text-align: center;
+  padding: 20px;
+}
+
+.overlay.hidden { display: none; }
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.help { text-align: center; font-size: 0.9rem; color: #aaa; }
+.help p { margin: 8px 0 0; }
+
+/* ---------- Buttons ---------- */
+
+.btn, select {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 0.95rem;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+select { background: #1f6aa5; }
+
+.btn:hover:not(:disabled) { filter: brightness(0.85); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.big { font-size: 1.15rem; padding: 14px 24px; }
+
+.blue { background: #2980b9; }
+.gray { background: #7f8c8d; }
+.purple { background: #8e44ad; }
+.orange { background: #e67e22; }
+.red { background: #c0392b; }
+.green { background: #27ae60; }
+
+/* ---------- Calculator ---------- */
+
+.display {
+  width: 100%;
+  height: 70px;
+  font-size: 1.9rem;
+  text-align: right;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 2px solid #565b5e;
+  background: #343638;
+  color: #fff;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.keys button {
+  aspect-ratio: 1;
+  font-size: 1.6rem;
+  border: none;
+  border-radius: 8px;
+  background: #1f6aa5;
+  color: #fff;
+  cursor: pointer;
+}
+
+.keys button:hover { background: #144870; }
+.keys button.op { background: #3a7ebf; }
+.keys button.clear { background: #c0392b; }
+.keys button.eq { background: #27ae60; }
+
+.gesture-table ul { margin: 0; padding-left: 18px; line-height: 1.6; font-size: 0.9rem; }
+
+.hint { font-size: 0.85rem; color: #999; margin: 6px 0 0; }
+
+/* ---------- Settings ---------- */
+
+#settings {
+  background: #2b2b2b;
+  border-radius: 10px;
+  padding: 8px 14px;
+  max-width: 420px;
+}
+
+#settings summary { cursor: pointer; }
+
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.settings-body label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; }
+
+.settings-body input {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #565b5e;
+  background: #343638;
+  color: #fff;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; padding: 12px; }
+  header { padding: 12px 12px 0; }
+}

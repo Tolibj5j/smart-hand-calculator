@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Hand Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>✋ Smart Hand Calculator</h1>
+    <details id="settings">
+      <summary>⚙️ Sozlamalar (Gemini API)</summary>
+      <div class="settings-body">
+        <label>API kalit
+          <input id="apiKey" type="password" placeholder="AIza..." autocomplete="off">
+        </label>
+        <label>Model
+          <input id="model" type="text">
+        </label>
+        <button id="saveSettings" class="btn green">Saqlash</button>
+        <p class="hint">
+          Kalitni <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>
+          dan bepul oling. U faqat shu brauzerda saqlanadi va hech qayerga yuborilmaydi (faqat Google'ga).
+        </p>
+      </div>
+    </details>
+  </header>
+
+  <main>
+    <section class="card video-card">
+      <div class="stage">
+        <video id="video" playsinline muted></video>
+        <canvas id="view"></canvas>
+        <div id="startOverlay" class="overlay">
+          <button id="startBtn" class="btn big blue">📷 Kamerani yoqish</button>
+          <p id="status" class="hint"></p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <select id="cameraSelect" title="Kamera"></select>
+        <button id="mirrorBtn" class="btn blue">Oyna: YONIQ</button>
+        <button id="modeBtn" class="btn purple">Rejim: CHIZISH</button>
+        <button id="clearBtn" class="btn red">Tozalash</button>
+        <button id="solveBtn" class="btn green">Yechish (AI)</button>
+      </div>
+
+      <div id="help" class="help">
+        <p><b>Chizish:</b> faqat ko'rsatkich barmoq — yozish ✍️ · ko'rsatkich + o'rta — qalamni ko'tarish ✌️</p>
+      </div>
+    </section>
+
+    <section class="card calc-card">
+      <input id="display" class="display" type="text" inputmode="none" autocomplete="off" spellcheck="false">
+      <div class="keys" id="keys"></div>
+
+      <div class="gesture-table">
+        <h3>Ishoralar</h3>
+        <ul>
+          <li><b>0–5</b> — ko'tarilgan barmoqlar soni</li>
+          <li><b>6–9</b> — ikki qo'ldagi barmoqlar yig'indisi</li>
+          <li><b>+</b> — 👍 Like</li>
+          <li><b>−</b> — faqat jimjiloq</li>
+          <li><b>×</b> — 🤘 Rok</li>
+          <li><b>÷</b> — 🤙 Shaka</li>
+          <li><b>=</b> — L shakli (bosh + ko'rsatkich)</li>
+        </ul>
+        <p class="hint">Ishorani ~0.5 soniya ushlab turing.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
