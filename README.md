@@ -9,7 +9,8 @@ Veb-kamera orqali qo'l harakatlari bilan boshqariladigan kalkulyator. To'liq bra
 1. **Chizish rejimi.** Ko'rsatkich barmoq bilan havoda misol yozasiz, "Yechish (AI)" tugmasi uni Google Gemini'ga yuboradi va javobni chiqaradi.
    - Faqat ko'rsatkich barmoq: yozish
    - Ko'rsatkich + o'rta barmoq: qalamni ko'tarish
-2. **Ishoralar rejimi.** Ishorani ~0.5 soniya ushlab turing:
+2. **Ishoralar rejimi.** Ishorani yashil chiziq to'lguncha ushlab turing (standart 1 soniya, 0.5–2.5 s oralig'ida sozlanadi).
+   Bir xil belgini ketma-ket kiritish uchun qo'lni tushiring yoki boshqa ishora ko'rsating. Xato kirsa, **⌫** bilan o'chiring.
 
    | Ishora | Belgi |
    |---|---|

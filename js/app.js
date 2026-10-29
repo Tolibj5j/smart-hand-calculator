@@ -1,10 +1,10 @@
-import { HAND_CONNECTIONS, fingerState, readGesture, toPixels } from "./gestures.js";
+import { HAND_CONNECTIONS, GestureInput, fingerState, readGesture, toPixels } from "./gestures.js";
 import { safeEval, CalcError } from "./calculator.js";
 import { solveImage, DEFAULT_MODEL } from "./ai.js";
 
-const HOLD_MS = 500;      // ishorani qancha ushlab turish kerak
-const COOLDOWN_MS = 400;  // kiritilgandan keyingi pauza
+const DEFAULT_HOLD_MS = 1000; // ishorani qancha ushlab turish kerak (sozlanadi)
 const PEN_WIDTH = 15;
+const SYMBOL_LABELS = { "*": "×", "/": "÷", "-": "−" };
 const OPERATORS = "+-*/";
 
 const $ = (id) => document.getElementById(id);
@@ -23,7 +23,7 @@ const state = {
   strokes: [],         // chiziqlar: [{x, y}] massivlari, koordinatalar 0..1
   currentStroke: null,
   marker: null,        // barmoq uchidagi doira
-  gesture: { symbol: null, start: 0, cooldownUntil: 0, progress: 0 },
+  gesture: new GestureInput({ holdMs: Number(localStorage.getItem("shc_hold_ms")) || DEFAULT_HOLD_MS }),
   aiBusy: false,
   showingMessage: false,
 };
@@ -43,6 +43,12 @@ function calcInput(char) {
   }
 
   if (char === "C") return setDisplay("");
+
+  if (char === "⌫") {
+    // Natija ko'rsatilgan bo'lsa, misolning o'zini qaytaramiz
+    if (current.includes("=")) return setDisplay(current.split("=")[0].trim());
+    return setDisplay(current.slice(0, -1));
+  }
 
   if (char === "=") {
     if (!current || current.includes("=")) return;
@@ -64,15 +70,18 @@ function calcInput(char) {
 }
 
 function buildKeys() {
-  const keys = ["7", "8", "9", "/", "4", "5", "6", "*", "1", "2", "3", "-", "C", "0", "=", "+"];
-  const labels = { "/": "÷", "*": "×", "-": "−" };
+  const keys = ["7", "8", "9", "/", "4", "5", "6", "*", "1", "2", "3", "-", "C", "0", "=", "+", "⌫"];
   const box = $("keys");
   for (const k of keys) {
     const b = document.createElement("button");
-    b.textContent = labels[k] ?? k;
+    b.textContent = SYMBOL_LABELS[k] ?? k;
     if (OPERATORS.includes(k)) b.className = "op";
     if (k === "C") b.className = "clear";
     if (k === "=") b.className = "eq";
+    if (k === "⌫") {
+      b.className = "back";
+      b.title = "Oxirgi belgini o'chirish";
+    }
     b.addEventListener("click", () => calcInput(k));
     box.appendChild(b);
   }
@@ -212,38 +221,33 @@ function clearBoard() {
 // ================= Ishoralar =================
 
 function handleGesture(hands, now) {
-  const g = state.gesture;
-  const symbol = readGesture(hands);
-
-  if (now < g.cooldownUntil || !symbol) {
-    g.symbol = null;
-    g.progress = 0;
-    return;
-  }
-  if (symbol !== g.symbol) {
-    g.symbol = symbol;
-    g.start = now;
-  }
-  g.progress = Math.min(1, (now - g.start) / HOLD_MS);
-  if (g.progress >= 1) {
-    calcInput(symbol);
-    g.symbol = null;
-    g.progress = 0;
-    g.cooldownUntil = now + COOLDOWN_MS;
-  }
+  const symbol = state.gesture.update(readGesture(hands), now);
+  if (symbol) calcInput(symbol);
 }
 
 function drawGestureOverlay(w, h) {
   const g = state.gesture;
+  const label = (s) => SYMBOL_LABELS[s] ?? s;
+  const now = performance.now();
+
+  ctx.font = "bold 30px system-ui, sans-serif";
   if (g.symbol) {
-    ctx.strokeStyle = "#555";
+    ctx.strokeStyle = "#888";
     ctx.lineWidth = 2;
     ctx.strokeRect(20, 20, 200, 20);
     ctx.fillStyle = "#00ff00";
     ctx.fillRect(20, 20, 200 * g.progress, 20);
-    ctx.font = "bold 32px system-ui, sans-serif";
-    const labels = { "*": "×", "/": "÷", "-": "−" };
-    ctx.fillText(`Kiritish: ${labels[g.symbol] ?? g.symbol}`, 20, 78);
+    ctx.fillText(`Kiritish: ${label(g.symbol)}`, 20, 76);
+  } else if (g.locked !== null) {
+    if (now - g.lastInputAt < 700) {
+      ctx.fillStyle = "#00ff00";
+      ctx.fillText(`✓ ${label(g.locked)} qo'shildi`, 20, 50);
+    } else {
+      ctx.fillStyle = "#ffaa00";
+      ctx.font = "bold 22px system-ui, sans-serif";
+      ctx.fillText("Keyingi belgi uchun qo'lni tushiring", 20, 45);
+      ctx.fillText("yoki boshqa ishora ko'rsating", 20, 72);
+    }
   }
   ctx.fillStyle = "#ffff00";
   ctx.font = "16px system-ui, sans-serif";
@@ -396,9 +400,23 @@ function initSettings() {
   });
 }
 
+function initHoldSlider() {
+  const slider = $("holdSlider");
+  const value = $("holdValue");
+  const show = () => (value.textContent = `${(state.gesture.holdMs / 1000).toFixed(1)} s`);
+  slider.value = state.gesture.holdMs;
+  show();
+  slider.addEventListener("input", () => {
+    state.gesture.holdMs = Number(slider.value);
+    localStorage.setItem("shc_hold_ms", slider.value);
+    show();
+  });
+}
+
 function init() {
   buildKeys();
   initSettings();
+  initHoldSlider();
   updateButtons();
 
   $("startBtn").addEventListener("click", start);
@@ -413,7 +431,7 @@ function init() {
   $("modeBtn").addEventListener("click", () => {
     state.mode = state.mode === "DRAW" ? "GESTURE" : "DRAW";
     state.currentStroke = null;
-    state.gesture.symbol = null;
+    state.gesture.reset();
     updateButtons();
   });
 

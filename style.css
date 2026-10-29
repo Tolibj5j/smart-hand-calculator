@@ -140,6 +140,10 @@ select { background: #1f6aa5; }
 .keys button.op { background: #3a7ebf; }
 .keys button.clear { background: #c0392b; }
 .keys button.eq { background: #27ae60; }
+.keys button.back { grid-column: span 4; aspect-ratio: auto; height: 50px; background: #7f8c8d; }
+
+.slider { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: 0.9rem; }
+.slider input { width: 100%; }
 
 .gesture-table ul { margin: 0; padding-left: 18px; line-height: 1.6; font-size: 0.9rem; }
 
